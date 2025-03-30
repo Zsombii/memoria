@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memóriajáték</title>
+  <style>
+body {
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    text-align: center;
+    background: radial-gradient(circle at top, #2a0845, #0f0c29);
+    color: white;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+.category-selector {
+    margin: 20px;
+    font-size: 18px;
+    width: 10%;
+    background: radial-gradient(circle, #654ea3, #a56982);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out;
+}
+
+.category-selector:hover {
+    transform: scale(1.05);
+    background: radial-gradient(circle, #503f8a, #c084cf);
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #503f8a;
+    color: white;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: background 0.3s ease-in-out;
+}
+
+select:hover {
+    background: #3b2c80;
+}
+
+label {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: white;
+}
+
+
+.game-container {
+    display: grid;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+}
+
+.card {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #654ea3, #eaafc8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    cursor: pointer;
+    border-radius: 16px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out, background 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.1);
+    background: radial-gradient(circle, #503f8a, #c084cf);
+}
+
+.flipped {
+    background: white !important;
+}
+
+.score-board {
+    font-size: 20px;
+    display: none;
+}
+
+button {
+    background: #5038a0;
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+    max-width: 200px;
+}
+
+button:hover {
+    background: #3b2c80;
+}
+
+span.red{
+    color: red;
+}
+
+@media (max-width: 768px) {
+    .game-container {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+
+    .card {
+        width: 60px;
+        height: 60px;
+        font-size: 32px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        gap: 6px;
+    }
+
+    .card {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+    }
+
+    button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    h1 {
+        font-size: 1.2em;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <h1>Memóriajáték</h1>
+  <div class="category-selector" id="categorySelector">
+    <label for="category">Válassz kategóriát:</label>
+    <select id="category">
+      <option value="fruits">Gyümölcsök</option>
+      <option value="animals">Állatok</option>
+      <option value="emojis">Emojik</option>
+      <option value="colors">Színek</option>
+      <option value="numbers">Számok</option>
+    </select>
+  </div>
+  <button id="gameButton" onclick="toggleGame()">Kezdés</button>
+  <div class="score-board" id="scoreBoard">
+    <p>Pontszám: <span id="score">0</span></p>
+    <p>Megtalált párok: <span id="matchedPairs"></span></p>
+    <p id="stopwatch">Idő: <span class="red">0</span></p>
+  </div>
+  <div class="game-container" id="gameBoard"></div>
+
+  <script>
+    const categories = {
+  fruits: ['🍎', '🍌', '🍇', '🍉', '🍒', '🍋', '🍓', '🍍', '🥭', '🍑', '🍏', '🥝', '🥥', '🍈', '🍊', '🍐', '🍋‍🟩', '🫐'],
+  animals: ['🐶', '🐱', '🦊', '🐻', '🐯', '🐸', '🐵', '🐘', '🦁', '🐼', '🐷', '🐨', '🦄', '🦓', '🦕', '🐊', '🦖', '🦦'],
+  emojis: ['😀', '😂', '😎', '😍', '😡', '😭', '😴', '🤯', '🤔', '😜', '🥳', '😇', '😈', '🤠', '😵', '🤡', '🤩', '🧐'],
+  colors: ['🟥', '🟩', '🟦', '🟨', '🟪', '🟧', '🟫', '⬛', '⬜', '🟠', '🟣', '🔴', '🟡', '🟤', '🔵', '⚪', '⚫', '🟢'],
+  numbers: ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '0️⃣', '🔢', '🔠', '🔡', '🔣', '🔤', '🆙', 'ℹ️']
+};
+
+let selectedCards = [];
+let matchedPairs = 0;
+let score = 0;
+let gameStarted = false;
+let startTime = 0;
+let timerInterval;
+
+function toggleGame() {
+  if (!gameStarted) {
+    startGame();
+  } else {
+    resetGame();
+  }
+}
+
+function startGame() {
+  gameStarted = true;
+  document.getElementById("categorySelector").style.display = "none";
+  document.getElementById("gameButton").textContent = "Új játék";
+  
+  document.getElementById("scoreBoard").style.display = "block";
+  document.getElementById("stopwatch").style.display = "block";
+
+  const category = document.getElementById("category").value;
+  let symbols = [...categories[category], ...categories[category]]; 
+  symbols.sort(() => 0.5 - Math.random());
+
+  matchedPairs = 0;
+  selectedCards = [];
+  document.getElementById("score").textContent = "0";
+  document.getElementById("matchedPairs").textContent = "";
+
+  startTime = Date.now();
+
+  document.getElementById("stopwatch").style.color = "red";
+
+  timerInterval = setInterval(updateStopwatch, 100);
+
+  const gameBoard = document.getElementById("gameBoard");
+  gameBoard.innerHTML = "";
+  gameBoard.style.gridTemplateColumns = `repeat(6, 80px)`;
+
+  symbols.forEach((symbol) => {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.dataset.symbol = symbol;
+    card.addEventListener("click", flipCard);
+    gameBoard.appendChild(card);
+  });
+}
+
+function resetGame() {
+  gameStarted = false;
+  document.getElementById("categorySelector").style.display = "block";
+  document.getElementById("gameButton").textContent = "Kezdés";
+  document.getElementById("gameBoard").innerHTML = "";
+  document.getElementById("scoreBoard").style.display = "none";
+  document.getElementById("stopwatch").style.display = "none";
+  document.getElementById("stopwatch").textContent = "Idő: 0";
+  
+  document.getElementById("stopwatch").style.color = "white";
+
+  selectedCards = [];
+  matchedPairs = 0;
+  
+  clearInterval(timerInterval);
+}
+
+function updateStopwatch() {
+  const elapsedTime = Date.now() - startTime;
+  const seconds = (elapsedTime / 1000).toFixed(1);
+  document.getElementById("stopwatch").textContent = `Idő: ${seconds} másodperc`;
+}
+
+function flipCard() {
+  if (selectedCards.length < 2 && !this.classList.contains("flipped")) {
+    this.textContent = this.dataset.symbol;
+    this.classList.add("flipped");
+    selectedCards.push(this);
+    if (selectedCards.length === 2) {
+      setTimeout(checkMatch, 500);
+    }
+  }
+}
+
+function checkMatch() {
+  if (selectedCards[0].dataset.symbol === selectedCards[1].dataset.symbol) {
+    matchedPairs++;
+    score += 1;
+    document.getElementById("score").textContent = score;
+    document.getElementById("matchedPairs").textContent += selectedCards[0].dataset.symbol + " ";
+    selectedCards = [];
+
+    if (matchedPairs === categories[document.getElementById("category").value].length) {
+      clearInterval(timerInterval);
+      const elapsedTime = (Date.now() - startTime) / 1000;
+      alert(`Gratulálok! Megtaláltad az összes párt! \nAz eltelt idő: ${elapsedTime.toFixed(1)} másodperc`);
+      location.reload();
+      document.getElementById("stopwatch").style.color = "red";
+    }
+  } else {
+    selectedCards.forEach((card) => {
+      card.textContent = "";
+      card.classList.remove("flipped");
+    });
+    selectedCards = [];
+  }
+}
+
+  </script>
+</body>
+</html>
