@@ -218,7 +218,9 @@ function startGame() {
   document.getElementById("stopwatch").style.display = "block";
 
   const category = document.getElementById("category").value;
-  let symbols = [...categories[category], ...categories[category]]; 
+  let baseSymbols = categories[category].slice(0, Math.floor(categories[category].length / 2) * 2);
+  let symbols = [...baseSymbols, ...baseSymbols];
+
   symbols.sort(() => 0.5 - Math.random());
 
   matchedPairs = 0;
